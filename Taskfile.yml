@@ -1,0 +1,73 @@
+# https://taskfile.dev
+
+version: '2'
+env:
+  PROJECT_NAME: k8s-airflow
+#env: envs to be set on runtime
+  #KUBE_CONTEXT: minikube
+  #DOCKER_REGISTRY: ci-dump-dcr.mfb.io
+  #NAMESPACE: default
+
+tasks:
+
+  run.local:
+    cmds:
+      - task: start.minikube
+      - source ./local.env && eval $(minikube docker-env) && task docker.build
+      - source ./local.env && task k8s.deploy.rolebinding
+      #- source ./local.env && task airflow.undeploy
+      - source ./local.env && task airflow.deploy
+      - source ./local.env && task airflow.dag.deploy
+
+  start.minikube:
+    cmds:
+      - if minikube status | grep Running; then echo "minikube running..."; else echo "starting minikube"; minikube start; fi
+
+  default:
+    cmds:
+      - echo 'executed on {{if ne .KUBE_CONTEXT "minikube"}}remote{{else}}local{{end}}'
+    silent: true
+
+  docker.build:
+    deps: [set.k8s.context]
+    cmds: 
+      - docker build -t $DOCKER_REGISTRY/data/airflow:latest .
+      - '{{if ne .KUBE_CONTEXT "minikube"}}docker push $DOCKER_REGISTRY/data/airflow:latest{{end}}'
+
+  airflow.deploy:
+    deps: [set.k8s.context]
+    cmds:
+      - >
+        for f in ./helm-values/$ENV/*; do
+          helm tiller run $NAMESPACE -- helm upgrade airflow stable/airflow \
+            --namespace $NAMESPACE \
+            --install \
+            --force \
+            --wait \
+            --timeout 600 \
+            --values $f
+          kubectl label service airflow-web --overwrite access=company expose=http
+        done
+
+  airflow.dags.deploy:
+    deps: [set.k8s.context]
+    cmds:
+      - >
+        kubectl -n $NAMESPACE get pods -o jsonpath="{.items[0].metadata.name}" -l 
+        app=airflow -l component=scheduler 
+        | xargs -I {} kubectl -n $NAMESPACE cp dags/* {}:/usr/local/airflow/dags
+
+  airflow.undeploy:
+    deps: [set.k8s.context]
+    cmds:
+      - helm tiller run $NAMESPACE -- helm delete --purge airflow
+
+  set.k8s.context:
+    cmds:
+      - kubectl config set-context $KUBE_CONTEXT --namespace=$NAMESPACE
+      - kubectl config use-context $KUBE_CONTEXT --namespace=$NAMESPACE
+
+  k8s.deploy.rolebinding:
+    deps: [set.k8s.context]
+    cmds:
+      - kubectl -n $NAMESPACE apply -f k8s/rolebinding.yaml

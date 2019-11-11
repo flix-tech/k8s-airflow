@@ -1,0 +1,83 @@
+airflow:
+  image:
+    repository: ci-dump-dcr.mfb.io/data/airflow
+    tag: latest
+    pull_policy: Always
+  executor: Kubernetes
+  service:
+    type: ClusterIP
+    externalPort: 80
+  config:
+    AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+    AIRFLOW__CORE__EXPOSE_CONFIG: true
+    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
+    
+    AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: spark
+    AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM: airflow
+    AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM: airflow-logs
+    AIRFLOW__KUBERNETES__NAMESPACE: data-flux-dev
+
+    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
+
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:airflow@airflow-postgresql:5432/airflow
+
+persistence:
+  enabled: true
+  existingClaim: ''
+
+workers:
+  enabled: false
+
+postgresql:
+  enabled: true
+
+redis:
+  enabled: false
+
+logsPersistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+dags:
+  path: /usr/local/airflow/dags
+  ##
+  ## Set to True to prevent pickling DAGs from scheduler to workers
+  doNotPickle: false
+  ##
+  ## Configure Git repository to fetch DAGs
+  git:
+    ##
+    ## url to clone the git repository
+    url: https://github.com/prabhatsharma/airflow-dags
+    ##
+    ## branch name, tag or sha1 to reset to
+    ref: master
+    ## pre-created secret with key, key.pub and known_hosts file for private repos
+    secret: {}
+  initContainer:
+    ## Fetch the source code when the pods starts
+    enabled: true
+    ## Image for the init container (any image with git will do)
+    image:
+      ## docker-airflow image
+      repository: alpine/git
+      ## image tag
+      tag: 1.0.7
+      pullPolicy: IfNotPresent
+    installRequirements: true
+web:
+  initialStartupDelay: "30"
+  initialDelaySeconds: "30"
+
+rbac:
+  ## Specifies whether RBAC resources should be created
+  create: false
+
+## Create or use ServiceAccount
+serviceAccount:
+  create: false
+  name: spark

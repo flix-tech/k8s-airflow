@@ -1,0 +1,56 @@
+airflow:
+  image:
+    repository: ci-dump-dcr.mfb.io/data/airflow
+    tag: latest
+  executor: Kubernetes
+  service:
+    type: NodePort
+  config:
+    AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+    AIRFLOW__CORE__EXPOSE_CONFIG: true
+    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: IfNotPresent
+    
+    AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: airflow
+    AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM: airflow
+    AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM: airflow-logs
+    AIRFLOW__KUBERNETES__NAMESPACE: default
+
+    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
+
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:airflow@airflow-postgresql:5432/airflow
+
+persistence:
+  enabled: true
+  existingClaim: ''
+
+workers:
+  enabled: false
+
+postgresql:
+  enabled: true
+
+redis:
+  enabled: false
+
+logsPersistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+dags:
+  path: /usr/local/airflow/dags
+
+web:
+  initialStartupDelay: "30"
+  initialDelaySeconds: "30"
+
+rbac:
+  create: false
+
+## Create or use ServiceAccount
+serviceAccount:
+  create: false
+  name: airflow
