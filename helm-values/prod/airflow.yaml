@@ -1,7 +1,8 @@
 airflow:
   image:
-    repository: airflow
+    repository: dcr.mfb.io/data/airflow
     tag: latest
+    pull_policy: Always
   executor: Kubernetes
   service:
     type: ClusterIP
@@ -9,14 +10,14 @@ airflow:
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
     AIRFLOW__CORE__EXPOSE_CONFIG: true
     AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: airflow
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: dcr.mfb.io/data/airflow
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: IfNotPresent
+    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
     
     AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: airflow
     AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM: airflow
     AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM: airflow-logs
-    AIRFLOW__KUBERNETES__NAMESPACE: default
+    AIRFLOW__KUBERNETES__NAMESPACE: data-flux
 
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
 
@@ -38,63 +39,19 @@ redis:
 logsPersistence:
   enabled: true
   accessMode: ReadWriteOnce
-  size: 1Gi
+  size: 4Gi
 
 dags:
   path: /usr/local/airflow/dags
-  ##
-  ## Set to True to prevent pickling DAGs from scheduler to workers
   doNotPickle: false
-  ##
-  ## Configure Git repository to fetch DAGs
-  git:
-    ##
-    ## url to clone the git repository
-    url: https://github.com/prabhatsharma/airflow-dags
-    ##
-    ## branch name, tag or sha1 to reset to
-    ref: master
-    ## pre-created secret with key, key.pub and known_hosts file for private repos
-    secret: {}
-  initContainer:
-    ## Fetch the source code when the pods starts
-    enabled: true
-    ## Image for the init container (any image with git will do)
-    image:
-      ## docker-airflow image
-      repository: alpine/git
-      ## image tag
-      tag: 1.0.7
-      ## Image pull policy
-      ## values: Always or IfNotPresent
-      pullPolicy: IfNotPresent
-    ## install requirements.txt dependencies automatically
-    installRequirements: true
+
 web:
   initialStartupDelay: "30"
   initialDelaySeconds: "30"
-  readinessProbe:
-    periodSeconds: 30
-    timeoutSeconds: 1
-    successThreshold: 1
-    failureThreshold: 5
-  livenessProbe:
-    periodSeconds: 30
-    timeoutSeconds: 1
-    successThreshold: 1
-    failureThreshold: 5
 
 rbac:
-  ##
-  ## Specifies whether RBAC resources should be created
   create: false
 
-##
-## Create or use ServiceAccount
 serviceAccount:
-  ##
-  ## Specifies whether a ServiceAccount should be created
   create: false
-  ## The name of the ServiceAccount to use.
-  ## If not set and create is true, a name is generated using the fullname template
-  name: spark
+  name: airflow
