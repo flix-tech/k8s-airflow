@@ -17,7 +17,7 @@ tasks:
       - source ./local.env && task k8s.deploy.rolebinding
       #- source ./local.env && task airflow.undeploy
       - source ./local.env && task airflow.deploy
-      - source ./local.env && task airflow.dag.deploy
+      - source ./local.env && task airflow.dags.deploy
 
   start.minikube:
     cmds:

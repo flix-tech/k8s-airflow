@@ -45,23 +45,26 @@ with DAG(
     }]
 
     def print_stuff():  # pylint: disable=missing-docstring
-        print("stuff!")
+        print("hello world!")
+
+    one_task = PythonOperator(
+        task_id="one_task",
+        python_callable=print_stuff
+    )
 
     # Use the zip binary, which is only found in this special docker image
     two_task = BashOperator(
         task_id='two_task',
-        bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"',
-        executor_config={"KubernetesExecutor": {"image": "ci-dump-dcr.mfb.io/data/airflow:latest"}},
-    )
+        bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"'    )
 
 
     # Limit resources on this operator/task with node affinity & tolerations
-    threetask = KubernetesPodOperator(namespace='data-flux-dev',
+    threetask = KubernetesPodOperator(namespace='default',
         image="dcr.mfb.io/data/spark-runner-image:latest",
         cmds=["kubectl"],
         env_vars={'KUBECONFIG':""},
         arguments=["get","pod"],
-        service_account_name="spark",
+        service_account_name="airflow",
         image_pull_policy="IfNotPresent",
         labels={"foo": "bar"},
         name="threetask",
@@ -70,4 +73,4 @@ with DAG(
         in_cluster=True,
         hostnetwork=False
     )
-    two_task >> threetask
+    [one_task, two_task, threetask]
