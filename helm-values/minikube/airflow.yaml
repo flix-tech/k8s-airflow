@@ -2,11 +2,11 @@ airflow:
   image:
     repository: ci-dump-dcr.mfb.io/data/airflow
     tag: latest
-  executor: Kubernetes
+  executor: Local
   service:
     type: NodePort
   config:
-    AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__EXPOSE_CONFIG: true
     AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
