@@ -55,11 +55,11 @@ with DAG(
     # Use the zip binary, which is only found in this special docker image
     two_task = BashOperator(
         task_id='two_task',
-        bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"'    )
+        bash_command='kubectl get pod')
 
 
     # Limit resources on this operator/task with node affinity & tolerations
-    threetask = KubernetesPodOperator(namespace='default',
+    threetask = KubernetesPodOperator(namespace=os.environ['AIRFLOW__KUBERNETES__NAMESPACE'],
         image="dcr.mfb.io/data/spark-runner-image:latest",
         cmds=["kubectl"],
         env_vars={'KUBECONFIG':""},
