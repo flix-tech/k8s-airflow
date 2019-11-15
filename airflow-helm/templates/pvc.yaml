@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "airflow-helm.fullname" . }}
+  labels:
+    app: {{ include "airflow-helm.fullname" . }}
+    app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+    helm.sh/chart: {{ include "airflow-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  accessModes:
+  - {{ .Values.logsPersistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.logsPersistence.size }}

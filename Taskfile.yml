@@ -34,19 +34,22 @@ tasks:
       - docker build -t $DOCKER_REGISTRY/data/airflow:latest .
       - '{{if ne .KUBE_CONTEXT "minikube"}}docker push $DOCKER_REGISTRY/data/airflow:latest{{end}}'
 
+  airflow.dependency:
+    cmds:
+      - cd airflow-helm && helm dependency update;
+
   airflow.deploy:
-    deps: [set.k8s.context]
+    deps: [set.k8s.context, airflow.dependency]
     cmds:
       - >
         for f in ./helm-values/$ENV/*; do
-          helm tiller run $NAMESPACE -- helm upgrade airflow stable/airflow \
+          helm tiller run $NAMESPACE -- helm upgrade airflow airflow-helm \
             --namespace $NAMESPACE \
             --install \
             --force \
             --wait \
             --timeout 600 \
             --values $f
-          kubectl label service airflow-web --overwrite access=company expose=http
         done
 
   airflow.dags.deploy:
@@ -54,8 +57,7 @@ tasks:
     cmds:
       - >
         kubectl -n $NAMESPACE get pods -o jsonpath="{.items[0].metadata.name}" -l 
-        app=airflow -l component=scheduler 
-        | xargs -I {} kubectl -n $NAMESPACE cp dags/* {}:/usr/local/airflow/dags
+        app=airflow | xargs -I {} kubectl -n $NAMESPACE cp dags/* {}:/usr/local/airflow/dags
 
   airflow.undeploy:
     deps: [set.k8s.context]

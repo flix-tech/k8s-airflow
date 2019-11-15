@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airflow-helm.fullname" . }}
+  labels:
+    app: {{ include "airflow-helm.fullname" . }}
+    app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+    helm.sh/chart: {{ include "airflow-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    kubernetes.io/change-cause: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+    downscaler/uptime: always
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy: {}
+  selector:
+    matchLabels:
+      app: {{ include "airflow-helm.fullname" . }}
+      app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "airflow-helm.fullname" . }}
+        app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ include "airflow-helm.fullname" . }}
+        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+        imagePullPolicy: {{ .Values.airflow.image.imagePullPolicy }}
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /usr/local/airflow
+          name: {{ include "airflow-helm.fullname" . }}
+        args:
+        - webserver
+        env:
+{{- range $key, $val := .Values.airflow.config }}
+          - name: {{ $key }}
+            value: {{ $val | quote }}
+{{- end}}
+        resources:
+{{ toYaml .Values.airflow.resources | indent 12 }}
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+
+      volumes:
+      - name: {{ include "airflow-helm.fullname" . }}
+        persistentVolumeClaim:
+          claimName: {{ include "airflow-helm.fullname" . }}
+
+      restartPolicy: Always
+      serviceAccountName: {{.Values.serviceAccount.name }}
+      hostname: {{ include "airflow-helm.fullname" . }}
+status: {}

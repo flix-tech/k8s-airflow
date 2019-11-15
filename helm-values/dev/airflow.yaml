@@ -23,36 +23,20 @@ airflow:
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
 
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:airflow@airflow-postgresql:5432/airflow
-
-persistence:
-  enabled: true
-  existingClaim: ''
-
-workers:
-  enabled: false
+    POSTGRES_HOST: airflow-postgresql
 
 postgresql:
   enabled: true
-
-redis:
-  enabled: false
+  postgresqlUsername: airflow
+  postgresqlDatabase: airflow
+  postgresqlPassword: airflow
 
 logsPersistence:
-  enabled: true
   accessMode: ReadWriteOnce
   size: 1Gi
 
-dags:
-  path: /usr/local/airflow/dags
-  doNotPickle: false
-
 web:
-  initialStartupDelay: "30"
   initialDelaySeconds: "30"
 
-rbac:
-  create: false
-
 serviceAccount:
-  create: false
   name: airflow
