@@ -3,21 +3,23 @@
 version: '2'
 env:
   PROJECT_NAME: k8s-airflow
-#env: envs to be set on runtime
-  #KUBE_CONTEXT: minikube
-  #DOCKER_REGISTRY: ci-dump-dcr.mfb.io
-  #NAMESPACE: default
+  ENV: '{{default "minikube" .ENV}}'
+  DOCKER_REGISTRY: '{{default "ci-dump-dcr.mfb.io" .DOCKER_REGISTRY}}'
+  NAMESPACE: '{{default "default" .NAMESPACE}}'
+vars:
+  KUBE_CONTEXT: '{{default "minikube" .KUBE_CONTEXT}}'
 
 tasks:
 
   run.local:
     cmds:
-      - task: start.minikube
-      - source ./local.env && eval $(minikube docker-env) && task docker.build
-      - source ./local.env && task k8s.deploy.rolebinding
-      #- source ./local.env && task airflow.undeploy
-      - source ./local.env && task airflow.deploy
-      - source ./local.env && task airflow.dags.deploy
+      - >
+        task start.minikube;
+        eval $(minikube docker-env);
+        task docker.build;
+        task k8s.deploy.rolebinding;
+        task airflow.deploy;
+        task airflow.dags.deploy;
 
   start.minikube:
     cmds:
@@ -43,12 +45,12 @@ tasks:
     cmds:
       - >
         for f in ./helm-values/$ENV/*; do
-          helm tiller run $NAMESPACE -- helm upgrade airflow airflow-helm \
+          helm upgrade airflow airflow-helm \
             --namespace $NAMESPACE \
             --install \
             --force \
             --wait \
-            --timeout 600 \
+            --timeout 600s \
             --values $f
         done
 
@@ -62,12 +64,12 @@ tasks:
   airflow.undeploy:
     deps: [set.k8s.context]
     cmds:
-      - helm tiller run $NAMESPACE -- helm delete --purge airflow
+      - helm uninstall --namespace $NAMESPACE airflow
 
   set.k8s.context:
     cmds:
-      - kubectl config set-context $KUBE_CONTEXT --namespace=$NAMESPACE
-      - kubectl config use-context $KUBE_CONTEXT --namespace=$NAMESPACE
+      - kubectl config set-context {{.KUBE_CONTEXT}} --namespace=$NAMESPACE
+      - kubectl config use-context {{.KUBE_CONTEXT}} --namespace=$NAMESPACE
 
   k8s.deploy.rolebinding:
     deps: [set.k8s.context]

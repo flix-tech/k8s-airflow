@@ -16,7 +16,7 @@ task run.local
 ```
 Undeploy locally:
 ```shell script
-source ./local.env && task airflow.undeploy
+task airflow.undeploy
 ```
 
 ## deploy on EKS Kubernetes cluster

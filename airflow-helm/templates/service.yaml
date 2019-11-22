@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "airflow-helm.fullname" . }}
+  name: {{ .Release.Name }}
   labels:
-    app: {{ include "airflow-helm.fullname" . }}
-    app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+    app: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
     helm.sh/chart: {{ include "airflow-helm.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -17,6 +17,6 @@ spec:
     port: 8080
     targetPort: 8080
   selector:
-    app: {{ include "airflow-helm.fullname" . }}
-    app.kubernetes.io/name: {{ include "airflow-helm.fullname" . }}
+    app: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ .Release.Name }}
     app.kubernetes.io/instance: {{ .Release.Name }}
