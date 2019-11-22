@@ -11,7 +11,7 @@ stages:
 # -- parameters
 
 .image_template: &image_definition
-  image: dcr.mfb.io/data/gitlab-runner-image:latest
+  image: dcr.mfb.io/data/spark-runner-image:latest
 
 .tag_template_dev: &tag_definition_team_runner_dev
   tags:
