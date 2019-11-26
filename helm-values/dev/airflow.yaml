@@ -24,6 +24,7 @@ airflow:
 
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:airflow@airflow-postgresql:5432/airflow
     POSTGRES_HOST: airflow-postgresql
+    ENV: dev
 
 postgresql:
   enabled: true
