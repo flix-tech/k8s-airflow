@@ -4,6 +4,11 @@ This is a project to a airflow app on Kubernetes. More information [here](https:
 
 The application uses the airflow helm chart [here](https://github.com/helm/charts/tree/master/stable/airflow).
 
+[DEV Airflow](https://airflow-data-flux-dev.ew1d2.k8s.mfb.io)
+
+[PROD Airflow](https://airflow-data-flux.ew1d2.k8s.mfb.io)
+
+
 ## run app locally
 
 Install local Kubernetes cluster first. Use [minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/).
