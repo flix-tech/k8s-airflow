@@ -48,6 +48,8 @@ tasks:
           helm upgrade airflow airflow-helm \
             --namespace $NAMESPACE \
             --install \
+            --atomic \
+            --cleanup-on-fail \
             --force \
             --wait \
             --timeout 600s \
