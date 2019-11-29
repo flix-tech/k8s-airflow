@@ -22,7 +22,7 @@ airflow:
 
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
 
-    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:airflow@airflow-postgresql:5432/airflow
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgresql:5432/airflow
     POSTGRES_HOST: airflow-postgresql
 
 postgresql:
