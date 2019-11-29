@@ -13,7 +13,8 @@ metadata:
     downscaler/uptime: always
 spec:
   replicas: {{ .Values.replicaCount }}
-  strategy: {}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}
