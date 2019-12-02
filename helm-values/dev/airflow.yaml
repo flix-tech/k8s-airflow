@@ -8,23 +8,12 @@ airflow:
     type: ClusterIP
     externalPort: 80
   config:
-    AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: true
-    AIRFLOW__CORE__DAG_RUN_CONF_OVERRIDES_PARAMS: true
-    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 60
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
     
-    AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: airflow
-    AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM: airflow
-    AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM: airflow-logs
     AIRFLOW__KUBERNETES__NAMESPACE: data-flux-dev
 
-    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: true
-
-    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgresql:5432/airflow
-    POSTGRES_HOST: airflow-postgresql
     ENV: dev
 
 postgresql:
