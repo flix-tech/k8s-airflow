@@ -3,31 +3,13 @@ airflow:
     repository: ci-dump-dcr.mfb.io/data/airflow
     tag: latest
     pull_policy: Always
-  executor: Local
   service:
     type: ClusterIP
     externalPort: 80
   config:
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
-    
-    AIRFLOW__KUBERNETES__NAMESPACE: data-flux-dev
-
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor 
     ENV: dev
-
-postgresql:
-  enabled: true
-  postgresqlUsername: airflow
-  postgresqlDatabase: airflow
-  postgresqlPassword: airflow
-
-logsPersistence:
-  accessMode: ReadWriteOnce
-  size: 1Gi
-
-web:
-  initialDelaySeconds: "30"
 
 serviceAccount:
   name: airflow
+  create: false

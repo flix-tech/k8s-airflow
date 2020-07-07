@@ -7,26 +7,13 @@ airflow:
   service:
     type: ClusterIP
   config:
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: dcr.mfb.io/data/airflow
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
-    
-    AIRFLOW__KUBERNETES__NAMESPACE: data-flux
-
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
     ENV: prod
-
-postgresql:
-  enabled: true
-  postgresqlUsername: airflow
-  postgresqlDatabase: airflow
-  postgresqlPassword: airflow
 
 logsPersistence:
   accessMode: ReadWriteOnce
   size: 4Gi
 
-web:
-  initialDelaySeconds: "30"
-
 serviceAccount:
+  create: false
   name: airflow

@@ -1,6 +1,10 @@
 # https://taskfile.dev
 
 version: '2'
+
+includes:
+  dags: ./dags
+
 env:
   PROJECT_NAME: k8s-airflow
   ENV: '{{default "minikube" .ENV}}'
@@ -17,9 +21,8 @@ tasks:
         task start.minikube;
         eval $(minikube docker-env);
         task docker.build;
-        task k8s.deploy.rolebinding;
         task airflow.deploy;
-        task airflow.dags.deploy;
+        task dags:deploy
 
   start.minikube:
     cmds:
@@ -56,13 +59,6 @@ tasks:
             --values $f
         done
 
-  airflow.dags.deploy:
-    deps: [set.k8s.context]
-    cmds:
-      - >
-        kubectl -n $NAMESPACE get pods -o jsonpath="{.items[0].metadata.name}" -l 
-        app=airflow | xargs -I {} kubectl -n $NAMESPACE cp dags/* {}:/usr/local/airflow/dags
-
   airflow.undeploy:
     deps: [set.k8s.context]
     cmds:
@@ -72,8 +68,3 @@ tasks:
     cmds:
       - kubectl config set-context {{.KUBE_CONTEXT}} --namespace=$NAMESPACE
       - kubectl config use-context {{.KUBE_CONTEXT}} --namespace=$NAMESPACE
-
-  k8s.deploy.rolebinding:
-    deps: [set.k8s.context]
-    cmds:
-      - kubectl -n $NAMESPACE apply -f k8s/rolebinding.yaml

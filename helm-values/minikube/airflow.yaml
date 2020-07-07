@@ -3,30 +3,11 @@ airflow:
     repository: ci-dump-dcr.mfb.io/data/airflow
     tag: latest
     imagePullPolicy: IfNotPresent
-  executor: Local
   service:
     type: NodePort
   config:
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: IfNotPresent
-    
-    AIRFLOW__KUBERNETES__NAMESPACE: default
-
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor 
     ENV: minikube
-
-postgresql:
-  enabled: true
-  postgresqlUsername: airflow
-  postgresqlDatabase: airflow
-  postgresqlPassword: airflow
-
-logsPersistence:
-  accessMode: ReadWriteOnce
-  size: 1Gi
-
-web:
-  initialDelaySeconds: "30"
 
 ## Create or use ServiceAccount
 serviceAccount:

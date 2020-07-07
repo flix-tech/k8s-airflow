@@ -8,26 +8,9 @@ airflow:
     type: ClusterIP
     externalPort: 80
   config:
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: ci-dump-dcr.mfb.io/data/airflow
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: latest
-    AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: Always
-    
-    AIRFLOW__KUBERNETES__NAMESPACE: data-flux-stg
-
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
     ENV: stg
 
-postgresql:
-  enabled: true
-  postgresqlUsername: airflow
-  postgresqlDatabase: airflow
-  postgresqlPassword: airflow
-
-logsPersistence:
-  accessMode: ReadWriteOnce
-  size: 1Gi
-
-web:
-  initialDelaySeconds: "30"
-
 serviceAccount:
+  create: false
   name: airflow
