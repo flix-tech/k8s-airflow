@@ -11,5 +11,5 @@ airflow:
 
 ## Create or use ServiceAccount
 serviceAccount:
-  create: false
+  create: true
   name: airflow

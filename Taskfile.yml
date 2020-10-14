@@ -53,7 +53,6 @@ tasks:
             --install \
             --atomic \
             --cleanup-on-fail \
-            --force \
             --wait \
             --timeout 600s \
             --values $f

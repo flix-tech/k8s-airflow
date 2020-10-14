@@ -8,6 +8,8 @@ metadata:
     helm.sh/chart: {{ include "airflow-helm.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+     helm.sh/resource-policy: keep
 spec:
   accessModes:
   - {{ .Values.logsPersistence.accessMode }}
