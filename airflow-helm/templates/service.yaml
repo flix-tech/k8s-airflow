@@ -1,22 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "airflow.fullname" . }}
   labels:
-    app: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ .Release.Name }}
-    helm.sh/chart: {{ include "airflow-helm.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    expose: http
-    access: company
+    {{- include "airflow.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.airflow.service.type }}
+  type: {{ .Values.service.type }}
   ports:
-  - name: web
-    port: 8080
-    targetPort: 8080
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
   selector:
-    app: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ .Release.Name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "airflow.selectorLabels" . | nindent 4 }}

@@ -8,8 +8,9 @@ includes:
 env:
   PROJECT_NAME: k8s-airflow
   ENV: '{{default "minikube" .ENV}}'
-  DOCKER_REGISTRY: '{{default "ci-dump-dcr.mfb.io" .DOCKER_REGISTRY}}'
+  DOCKER_REGISTRY: '{{default "mrmuggymuggy" .DOCKER_REGISTRY}}'
   NAMESPACE: '{{default "default" .NAMESPACE}}'
+  VERSION: 1.10.10
 vars:
   KUBE_CONTEXT: '{{default "minikube" .KUBE_CONTEXT}}'
 
@@ -36,7 +37,7 @@ tasks:
   docker.build:
     deps: [set.k8s.context]
     cmds: 
-      - docker build -t $DOCKER_REGISTRY/data/airflow:latest .
+      - docker build -t $DOCKER_REGISTRY/airflow:$VERSION .
       - '{{if ne .KUBE_CONTEXT "minikube"}}docker push $DOCKER_REGISTRY/data/airflow:latest{{end}}'
 
   airflow.dependency:

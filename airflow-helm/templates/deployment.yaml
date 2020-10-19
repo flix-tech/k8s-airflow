@@ -1,77 +1,81 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "airflow.fullname" . }}
   labels:
-    app: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ .Release.Name }}
-    helm.sh/chart: {{ include "airflow-helm.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-  annotations:
-    kubernetes.io/change-cause: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
-    downscaler/uptime: always
+    {{- include "airflow.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
-      app.kubernetes.io/name: {{ .Release.Name }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "airflow.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
       labels:
-        app: {{ .Release.Name }}
-        app.kubernetes.io/name: {{ .Release.Name }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "airflow.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "airflow.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-      - name: {{ .Release.Name }}
-        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
-        imagePullPolicy: {{ .Values.airflow.image.imagePullPolicy }}
-        ports:
-        - containerPort: 8080
-        volumeMounts:
-        - mountPath: /usr/local/airflow
-          name: {{ .Release.Name }}
-        args:
-        - webserver
-        env:
-{{- range $key, $val := .Values.airflow.config }}
-          - name: {{ $key }}
-            value: {{ $val | quote }}
-{{- end}}
-        resources:
-{{ toYaml .Values.airflow.resources | indent 12 }}
-        livenessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 1
-        readinessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 1
-
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.imagePullPolicy }}
+          ports:
+          - containerPort: 8080
+          volumeMounts:
+          - mountPath: /usr/local/airflow
+            name: {{ include "airflow.fullname" . }}-pvc
+          args:
+          - webserver
+          env:
+          {{- range $key, $val := .Values.airflow.config }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+          {{- end}}
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.web.initialDelaySeconds }}
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          {{- with .Values.airflow.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
       volumes:
-      - name: {{ .Release.Name }}
+      - name: {{ include "airflow.fullname" . }}-pvc
         persistentVolumeClaim:
-          claimName: {{ .Release.Name }}
-
-      restartPolicy: Always
-      serviceAccountName: {{.Values.serviceAccount.name }}
-      hostname: {{ .Release.Name }}
-status: {}
+          claimName: {{ include "airflow.fullname" . }}-pvc
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

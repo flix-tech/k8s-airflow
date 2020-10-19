@@ -1,10 +1,17 @@
+# Default values for airflow.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
 airflow:
   image:
-    repository: ci-dump-dcr.mfb.io/data/airflow
-    tag: latest
-  executor: Local
-  service:
-    type: NodePort
+    repository: mrmuggymuggy/airflow
+    tag: 1.10.10
+    imagePullPolicy: IfNotPresent
   config:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: true
@@ -13,7 +20,11 @@ airflow:
     AIRFLOW__KUBERNETES__NAMESPACE: default
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgresql:5432/airflow
     POSTGRES_HOST: airflow-postgresql
-    ENV: unknown
+    ENV: minikube
+  resources:
+    requests:
+      cpu: 150m
+      memory: 1Gi
 
 web:
   initialStartupDelay: "10"
@@ -29,7 +40,33 @@ logsPersistence:
   accessMode: ReadWriteOnce
   size: 1Gi
 
-## Create or use ServiceAccount
 serviceAccount:
-  create: false
+  create: true
+  annotations: {}
   name: airflow
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

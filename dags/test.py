@@ -35,7 +35,7 @@ args = {
 with DAG(
     dag_id='example_kubernetes_executor',
     default_args=args,
-    schedule_interval='0 0 * * *'
+    schedule_interval='0 * * * *'
 ) as dag:
 
     tolerations = [{
@@ -55,22 +55,6 @@ with DAG(
     # Use the zip binary, which is only found in this special docker image
     two_task = BashOperator(
         task_id='two_task',
-        bash_command='echo test')
+        bash_command="echo get ts :{{ts_nodash}}")
 
-
-    # Limit resources on this operator/task with node affinity & tolerations
-    threetask = KubernetesPodOperator(
-        namespace=os.environ['AIRFLOW__KUBERNETES__NAMESPACE'],
-        image="python",
-        cmds=["/bin/sh","-c"],
-        arguments=["sleep 100"],
-        service_account_name="airflow",
-        image_pull_policy="IfNotPresent",
-        labels={"foo": "bar"},
-        name="threetask",
-        task_id="threetask",
-        is_delete_operator_pod=True,
-        in_cluster=True,
-        hostnetwork=False
-    )
-    [one_task, two_task, threetask]
+    [one_task, two_task]
